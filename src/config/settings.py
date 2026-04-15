@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
     "authentication",
     "supplier",
+    "dealer",
     "order",
 ]
 

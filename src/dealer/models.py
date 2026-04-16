@@ -69,7 +69,9 @@ class DealerShipPromotion(BaseModel, DiscountMixin):
 class DealerShipRequest(BaseModel):
     dealership = ForeignKey("dealer.DealerShip", on_delete=PROTECT)
     car = ForeignKey(CarModel, on_delete=PROTECT)
-    status = TransactionStatusEnum.choices
+    status = CharField(
+        choices=TransactionStatusEnum.choices, default=TransactionStatusEnum.PENDING
+    )
     count = PositiveSmallIntegerField(default=1)
     error_description = TextField(max_length=200, blank=True, null=True)
-    supplier = ForeignKey("supplier.Supplier", on_delete=PROTECT)
+    supplier = ForeignKey("supplier.Supplier", on_delete=PROTECT, null=True)

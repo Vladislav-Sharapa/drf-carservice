@@ -12,9 +12,5 @@ class DealerReqestCreateViewSet(ViewSet):
     def create(self, request: Request):
         serializer = DealerRequestCreateSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            self.service.execute(
-                dealer_id=serializer.validated_data["dealer_id"],
-                car_id=serializer.validated_data["car_id"],
-                count=serializer.validated_data["count"],
-            )
+            self.service.execute(**serializer.validated_data)
         return Response("detail: request is created")

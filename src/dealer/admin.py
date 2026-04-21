@@ -1,3 +1,6 @@
 from django.contrib import admin
 
-# Register your models here.
+from dealer.models import DealerShip, DealerShipRequest
+
+admin.site.register(DealerShip)
+admin.site.register(DealerShipRequest)

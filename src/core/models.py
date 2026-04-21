@@ -9,6 +9,7 @@ from django.db.models import (
 
 class BaseModel(Model):
     created_at = DateTimeField(auto_now_add=True)
+    updated_at = DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True
@@ -16,19 +17,19 @@ class BaseModel(Model):
 
 class CarModel(BaseModel):
     class FuelType(TextChoices):
-        DIESEL = "diesel"
-        PETROL = "petrol"
-        GAS = "gas"
+        DIESEL = "DIESEL"
+        PETROL = "PETROL"
+        GAS = "GAS"
 
     class BodyType(TextChoices):
-        SEDAN = "sedan"
-        COUPE = "coupe"
-        HATCHBACK = "hatchback"
-        ESTATE = "estate"
-        CROSSOVER = "crossover"
-        PICKUP = "pickup"
-        MINIVAN = "minivan"
-        CABRIOLET = "cabriolet"
+        SEDAN = "SEDAN"
+        COUPE = "COUPE"
+        HATCHBACK = "HATCHBACK"
+        ESTATE = "ESTATE"
+        CROSSOVER = "CROSSOVER"
+        PICKUP = "PICKUP"
+        MINIVAN = "MINIVAN"
+        CABRIOLET = "CABRIOLET"
 
     brand = CharField(max_length=45)
     name = CharField(max_length=45, unique=True)

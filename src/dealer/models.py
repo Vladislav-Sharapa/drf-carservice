@@ -18,7 +18,7 @@ from django.db.models import (
 from django.core.validators import MinValueValidator
 
 from core.enums import TransactionStatusEnum
-from core.mixins import DiscountMixin
+from core.mixins.models import DiscountMixin
 from core.models import BaseModel, CarModel
 
 
@@ -74,4 +74,6 @@ class DealerShipRequest(BaseModel):
     )
     count = PositiveSmallIntegerField(default=1)
     error_description = TextField(max_length=200, blank=True, null=True)
+    init_price = DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    total_price = DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     supplier = ForeignKey("supplier.Supplier", on_delete=PROTECT, null=True)

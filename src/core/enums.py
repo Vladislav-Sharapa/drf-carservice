@@ -6,3 +6,4 @@ class TransactionStatusEnum(TextChoices):
     PROCESSING = "PROCESSING"
     ERROR = "ERROR"
     FAILED = "FAILED"
+    COMPLETED = "COMPLETED"

@@ -29,6 +29,27 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+# LOGGING = {
+#     'version': 1,
+#     'filters': {
+#         'require_debug_true': {
+#             '()': 'django.utils.log.RequireDebugTrue',
+#         },
+#     },
+#     'handlers': {
+#         'console': {
+#             'level': 'DEBUG',
+#             'filters': ['require_debug_true'],
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'loggers': {
+#         'django.db.backends': {
+#             'level': 'DEBUG',
+#             'handlers': ['console'],
+#         },
+#     },
+# }
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -39,9 +60,10 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    "django_extensions",
+    "drf_spectacular",
     "dealer",
     "order",
-    "drf_spectacular",
     "authentication",
     "supplier",
 ]

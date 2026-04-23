@@ -1,21 +1,25 @@
 from rest_framework.request import Request
 from rest_framework.viewsets import ViewSet
-from .serializers import UserRegistrationSerializer, UserSerializer
-from .service import UserService
-from drf_spectacular.utils import extend_schema
+
+from order.services.customer import CustomerService
+from .serializers import UserRegistrationSerializer
+from rest_framework.response import Response
+from rest_framework import status
+from django.db import transaction
 
 
-class UserViewSet(ViewSet):
-    user_service = UserService()
+class UserCreateViewSet(ViewSet):
+    serializer_class = UserRegistrationSerializer
+    service = CustomerService()
 
-    @extend_schema(request=UserRegistrationSerializer)
-    def create(self, request):
-        response = self.user_service.create_user(request)
-
-        return response
-
-    @extend_schema(request=UserSerializer)
-    def list(self, request: Request):
-        response = self.user_service.get_all()
-
-        return response
+    @transaction.atomic
+    def create(self, request: Request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            self.service.create_profile(user_id=user.id)
+            return Response(
+                {"message": "User registered successfully", "user_id": user.id},
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

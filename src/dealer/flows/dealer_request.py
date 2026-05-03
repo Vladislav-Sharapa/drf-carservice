@@ -1,16 +1,17 @@
 from decimal import Decimal
-from uuid import uuid4
+from typing import Optional
+from uuid import UUID
 
 from core.enums import TransactionStatusEnum
-from core.services import CarService
-from dealer.exceptions import NegativeBalanceException
-from dealer.models import DealerShip, DealerShipRequest
+from dealer.models import DealerShipRequest
 from dealer.services.dealer_reqeust import DealerShipRequestService
 from dealer.services.dealership import DealerShipService
-from rest_framework.exceptions import APIException
-from django.db import transaction
+from rest_framework.exceptions import APIException, NotFound
+from django.db import IntegrityError, transaction
 
 from dealer.services.inventory import DealerShipInventoryService
+from supplier.models import SupplierInventory
+from supplier.services.car import CarService
 from supplier.services.inventory import SupplierInventoryService
 
 
@@ -21,13 +22,13 @@ class DealerRequestCreateFlow:
         self.car_service = CarService()
 
     @transaction.atomic
-    def execute(self, dealer_id: uuid4, car_id: uuid4, count: int):
+    def execute(self, dealer_id: UUID, car_id: UUID, quantity: int):
         dealership = self.dealership_service.get_by_id(dealer_id)
         car = self.car_service.get_by_id(car_id)
 
         try:
             response = self.dealer_request_service.deploy_request(
-                dealership=dealership, car=car, count=count
+                dealership=dealership, car=car, quantity=quantity
             )
         except Exception as e:
             raise APIException(
@@ -44,58 +45,69 @@ class DealerRequestProcessFlow:
         self.dealership_service = DealerShipService()
         self.supplier_inventory_service = SupplierInventoryService()
 
-    @transaction.atomic
-    def execute(
-        self, dealer_id: uuid4, car_id: uuid4, request_id: uuid4, supplier_id: uuid4
-    ):
-        """Executes a dealership transaction for purchasing a car from a supplier."""
-        dealer_inventory = self.dealer_inventory_service.get(
-            dealer_id=dealer_id, car_id=car_id
+    def execute(self, request: DealerShipRequest):
+        """Processing a dealer's order to purchase a car from suppliers
+        1. We find the best offer from suppliers, based on all dealer promotions and loyalty discounts
+        2. If an offer is found, we check whether the dealer has enough funds to purchase the car at that price
+        3. If the dealer has enough funds, we update the dealer's balance and the number of cars in stock
+        """
+        self._set_request_status(request, status=TransactionStatusEnum.PROCESSING)
+
+        inventory = self.supplier_inventory_service.get_cheapest_inventory(
+            car_id=request.car_id, quantity=request.quantity
         )
-        supplier_inventory = self.supplier_inventory_service.get(
-            supplier_id=supplier_id, car_id=car_id
+        if not inventory:
+            raise NotFound(detail="There is no supplier with desired car")
+        new_dealer_balance = self._calculate_dealer_balance(
+            dealer_balance=request.dealership.balance,
+            total_price=inventory.price_with_discount,
         )
-        dealer_request: DealerShipRequest = self.dealer_request_serice.get_by_id(
-            request_id
-        )
-        dealership: DealerShip = self.dealership_service.get_by_id(dealer_id)
+        if new_dealer_balance < 0:
+            self._set_request_status(
+                request=request,
+                status=TransactionStatusEnum.FAILED,
+                message="Dealer has insufficient balance",
+            )
+            return
 
         try:
-            new_balance = self.__calculte_balance(
-                dealership.balance, supplier_inventory.price
+            with transaction.atomic():
+                self.dealership_service.update(
+                    obj=request.dealership_id, data={"balance": new_dealer_balance}
+                )
+                self.dealer_inventory_service.update_quantity(
+                    dealer_id=request.dealership_id,
+                    car_id=request.car_id,
+                    quantity=request.quantity,
+                )
+                self._complete_request(request=request, inventory=inventory)
+        except IntegrityError:
+            self._set_request_status(
+                request=request,
+                status=TransactionStatusEnum.ERROR,
+                message="Error during server processing",
             )
 
-            self.dealer_inventory_service.set_quantity(
-                dealer_request.count,
-                dealer_inventory.current_stock,
-                inventory_id=dealer_inventory.id,
-            )
-            self.dealership_service.update(
-                id=dealership.id, instance=dealership, data={"balance": new_balance}
-            )
-            self.dealer_request_serice.update(
-                id=dealer_request.id,
-                instance=dealer_request,
-                data=dict(
-                    status=TransactionStatusEnum.COMPLETED,
-                    total_price=supplier_inventory.price,
-                ),
-            )
+    def _set_request_status(
+        self, request: DealerShipRequest, status: str, message: Optional[str] = None
+    ):
+        self.dealer_request_serice.update(
+            obj=request, data=dict(status=status, status_detail=message)
+        )
 
-        except NegativeBalanceException:
-            self.dealer_request_serice.update(
-                id=dealer_request.id,
-                instance=dealer_request,
-                data=dict(
-                    status=TransactionStatusEnum.COMPLETED,
-                    error_description="Nety denyag",
-                ),
-            )
-        except Exception as e:
-            raise APIException(
-                detail=f"Error during processing data. Detail: {e}",
-            )
+    def _calculate_dealer_balance(self, dealer_balance: Decimal, total_price: Decimal):
+        return dealer_balance - total_price
 
-    def __calculte_balance(self, dealership_balance: Decimal, request_price: Decimal):
-        if dealership_balance - request_price < 0:
-            raise NegativeBalanceException
+    def _complete_request(
+        self, request: DealerShipRequest, inventory: SupplierInventory
+    ):
+        self.dealer_request_serice.update(
+            obj=request,
+            data=dict(
+                supplier=inventory.supplier,
+                status=TransactionStatusEnum.COMPLETED,
+                status_detail="Request was processed",
+                init_price=inventory.price,
+                total_price=inventory.price_with_discount,
+            ),
+        )

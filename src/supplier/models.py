@@ -5,6 +5,7 @@ from django.db.models import (
     CheckConstraint,
     PositiveSmallIntegerField,
     EmailField,
+    TextChoices,
     UniqueConstraint,
     ForeignKey,
     CASCADE,
@@ -13,8 +14,39 @@ from django.db.models import (
 )
 from datetime import datetime
 
-from core.mixins import DiscountMixin
-from core.models import BaseModel, CarModel
+from core.mixins.models import DiscountMixin
+from core.models import BaseModel
+
+
+class CarModel(BaseModel):
+    class FuelType(TextChoices):
+        DIESEL = "DIESEL"
+        PETROL = "PETROL"
+        GAS = "GAS"
+
+    class BodyType(TextChoices):
+        SEDAN = "SEDAN"
+        COUPE = "COUPE"
+        HATCHBACK = "HATCHBACK"
+        ESTATE = "ESTATE"
+        CROSSOVER = "CROSSOVER"
+        PICKUP = "PICKUP"
+        MINIVAN = "MINIVAN"
+        CABRIOLET = "CABRIOLET"
+
+    brand = CharField(max_length=45)
+    name = CharField(max_length=45, unique=True)
+    year = PositiveSmallIntegerField()
+    horsepower = PositiveSmallIntegerField()
+    fuel_type = CharField(
+        max_length=15, choices=FuelType.choices, default=FuelType.PETROL
+    )
+    body_type = CharField(
+        max_length=15, choices=BodyType.choices, default=BodyType.SEDAN
+    )
+
+    class Meta:
+        app_label = "supplier"
 
 
 class Supplier(BaseModel):
@@ -54,7 +86,9 @@ class SupplierPromotion(BaseModel, DiscountMixin):
 
 class SupplierLoyaltyDiscount(BaseModel, DiscountMixin):
     supplier = ForeignKey("supplier.Supplier", on_delete=CASCADE)
-    dealership = ForeignKey("dealer.DealerShip", on_delete=CASCADE)
+    dealership = ForeignKey(
+        "dealer.DealerShip", on_delete=CASCADE, related_name="loyalty_discount"
+    )
 
     class Meta:
         constraints = [

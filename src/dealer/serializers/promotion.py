@@ -9,7 +9,7 @@ class DealerPromotionCreateSerializer(ModelSerializer):
         fields = "__all__"
 
 
-class DealerPromotionSerializer(ModelSerializer):
+class DealerPromotionListSerializer(ModelSerializer):
     class Meta:
         model = DealerShipPromotion
-        exclude = ["created_at", "updated_at"]
+        fields = "__all__"

@@ -2,38 +2,26 @@ from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
 from dealer.views.dealer_request import (
-    DealerReqeustCreateViewSet,
-    DealerRequestListViewSet,
-    DealerRequestUpdateViewSet,
+    # DealerReqeustCreateViewSet,
+    # DealerRequestListViewSet,
+    # DealerRequestUpdateViewSet,
+    DealerRequestViewSet,
 )
-from dealer.views.inventory import DealerInventoryUpdateViewSet
-from dealer.views.promotion import (
-    DealerPromotionCreateViewSet,
-    DealerPromotionListViewSet,
-)
+from dealer.views.dealership import DealerShipViewSet
+from dealer.views.inventory import DealerInventoryViewSet
+from dealer.views.promotion import DealerPromotionViewSet
 
 
 router = SimpleRouter()
 
-# Dealer request routes
-router.register("request/create", DealerReqeustCreateViewSet, basename="dealer-request")
-router.register(
-    "request/list", DealerRequestListViewSet, basename="dealer-request-list"
-)
-router.register(
-    "request/update", DealerRequestUpdateViewSet, basename="dealer-request-update"
-)
-# Dealer inventory routes
-router.register(
-    "inventory/update", DealerInventoryUpdateViewSet, basename="dealer-inventory-update"
-)
+router.register("", DealerShipViewSet, basename="dealership")
+router.register("request", DealerRequestViewSet, basename="dealer-request")
+router.register("inventory", DealerInventoryViewSet)
 # Dealer promotions routes
-router.register(
-    "promotion/create", DealerPromotionCreateViewSet, basename="dealer-promotion-create"
-)
-router.register(
-    "promotion", DealerPromotionListViewSet, basename="dealer-promotion-list"
-)
+router.register("promotion", DealerPromotionViewSet)
+# router.register(
+#     "promotion", DealerPromotionListViewSet, basename="dealer-promotion-list"
+# )
 
 
 urlpatterns = [

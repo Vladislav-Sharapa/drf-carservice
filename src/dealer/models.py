@@ -19,7 +19,8 @@ from django.core.validators import MinValueValidator
 
 from core.enums import TransactionStatusEnum
 from core.mixins.models import DiscountMixin
-from core.models import BaseModel, CarModel
+from core.models import BaseModel
+from supplier.models import CarModel
 
 
 class DealerShip(BaseModel):
@@ -32,7 +33,9 @@ class DealerShip(BaseModel):
 
 
 class DealerShipInventory(BaseModel):
-    dealership = ForeignKey("dealer.DealerShip", on_delete=CASCADE)
+    dealership = ForeignKey(
+        "dealer.DealerShip", on_delete=CASCADE, related_name="inventory"
+    )
     car = ForeignKey(CarModel, on_delete=CASCADE)
     current_stock = PositiveSmallIntegerField(default=0)
     min_required_stock = PositiveSmallIntegerField(default=1)
@@ -50,7 +53,9 @@ class DealerShipInventory(BaseModel):
 
 class DealerShipPromotion(BaseModel, DiscountMixin):
     name = CharField(max_length=30)
-    dealership = ForeignKey("dealer.DealerShip", on_delete=CASCADE)
+    dealership = ForeignKey(
+        "dealer.DealerShip", on_delete=CASCADE, related_name="promotions"
+    )
     start_date = DateField(blank=False, default=datetime.today)
     end_date = DateField(blank=False)
 
@@ -67,13 +72,15 @@ class DealerShipPromotion(BaseModel, DiscountMixin):
 
 
 class DealerShipRequest(BaseModel):
-    dealership = ForeignKey("dealer.DealerShip", on_delete=PROTECT)
+    dealership = ForeignKey(
+        "dealer.DealerShip", on_delete=PROTECT, related_name="requests"
+    )
     car = ForeignKey(CarModel, on_delete=PROTECT)
     status = CharField(
         choices=TransactionStatusEnum.choices, default=TransactionStatusEnum.PENDING
     )
-    count = PositiveSmallIntegerField(default=1)
-    error_description = TextField(max_length=200, blank=True, null=True)
+    quantity = PositiveSmallIntegerField(default=1)
+    status_detail = TextField(max_length=200, blank=True, null=True)
     init_price = DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     total_price = DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     supplier = ForeignKey("supplier.Supplier", on_delete=PROTECT, null=True)

@@ -1,10 +1,40 @@
-from rest_framework.viewsets import ViewSet
+from typing import override
 
-from core.mixins.views import UpdateModelMixin
-from dealer.serializers.inventory import DealerInventoryUpdateSerializer
+from rest_framework.mixins import (
+    ListModelMixin,
+    RetrieveModelMixin,
+    UpdateModelMixin,
+    CreateModelMixin,
+)
+
+from core.views import BaseGenericViewSet
+from dealer.serializers.inventory import (
+    DealerInventoryCreateSerializer,
+    DealerInventoryListSerializer,
+    DealerInventoryUpdateSerializer,
+)
 from dealer.services.inventory import DealerShipInventoryService
 
 
-class DealerInventoryUpdateViewSet(ViewSet, UpdateModelMixin):
+class DealerInventoryViewSet(
+    ListModelMixin,
+    UpdateModelMixin,
+    CreateModelMixin,
+    RetrieveModelMixin,
+    BaseGenericViewSet,
+):
     service = DealerShipInventoryService()
-    serializer_class = DealerInventoryUpdateSerializer
+    queryset = service.get_all()
+    serializer_class = DealerInventoryListSerializer
+
+    serializer_map = {
+        DealerInventoryCreateSerializer: ("create",),
+        DealerInventoryUpdateSerializer: ("update",),
+    }
+
+    @override
+    def get_queryset(self):
+        if self.action == "list":
+            return self.service.list()
+
+        return super().get_queryset()

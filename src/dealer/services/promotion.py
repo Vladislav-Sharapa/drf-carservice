@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import Sequence
-from uuid import uuid4
+from uuid import UUID
 
 from django.db import IntegrityError
 
@@ -14,8 +14,8 @@ from rest_framework.exceptions import APIException, NotFound
 class DealerPromotionService(BaseService):
     model = DealerShipPromotion
 
-    def get_by_dealer_id(self, dealer_id: uuid4) -> Sequence:
-        instances = DealerShipPromotion.objects.filter(dealer_id=dealer_id)
+    def get_by_dealer_id(self, dealer_id: UUID) -> Sequence:
+        instances = DealerShipPromotion.objects.filter(dealership_id=dealer_id)
         if not instances.exists():
             raise NotFound(
                 detail=f"There is no dealership promotions with dealearhip id:{dealer_id}"

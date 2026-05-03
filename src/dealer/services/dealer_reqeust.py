@@ -1,18 +1,17 @@
 from typing import Sequence
-from uuid import uuid4
+from uuid import UUID
 
 from core.enums import TransactionStatusEnum
-from core.models import CarModel
 from core.services import BaseService
 from dealer.models import DealerShip, DealerShipRequest
-from supplier.models import Supplier
+from supplier.models import CarModel, Supplier
 from rest_framework.exceptions import NotFound
 
 
 class DealerShipRequestService(BaseService):
     model = DealerShipRequest
 
-    def get(self, dealer_id: uuid4, car_id: uuid4) -> DealerShipRequest:
+    def get(self, dealer_id: UUID, car_id: UUID) -> DealerShipRequest:
         instance = DealerShipRequest.objects.filter(
             dealer_id=dealer_id, car_id=car_id
         ).select_related("car", "dealership")
@@ -20,7 +19,7 @@ class DealerShipRequestService(BaseService):
             raise NotFound
         return instance
 
-    def get_by_dealer_id(self, dealer_id: uuid4) -> Sequence:
+    def get_by_dealer_id(self, dealer_id: UUID) -> Sequence:
         request = self.model.objects.filter(dealership_id=dealer_id).select_related(
             "car"
         )
@@ -31,7 +30,7 @@ class DealerShipRequestService(BaseService):
             )
         return request
 
-    def get_pending_request_by_id(self, id: uuid4):
+    def get_pending_request_by_id(self, id: UUID):
         request = DealerShipRequest.objects.filter(
             id=id, status=TransactionStatusEnum.PENDING
         )
@@ -46,28 +45,28 @@ class DealerShipRequestService(BaseService):
         return requests
 
     def deploy_request(
-        self, dealership: DealerShip, car: CarModel, count: int
+        self, dealership: DealerShip, car: CarModel, quantity: int
     ) -> DealerShipRequest:
         return DealerShipRequest.objects.create(
             dealership=dealership,
             car=car,
             status=TransactionStatusEnum.PENDING,
-            count=count,
+            quantity=quantity,
         )
 
-    def set_supplier(self, request_id: uuid4, supplier: Supplier) -> None:
+    def set_supplier(self, request_id: UUID, supplier: Supplier) -> None:
         request = self.get_pending_request_by_id(request_id)
         request.supplier = supplier
 
         request.save()
 
-    def set_status(self, request_id: uuid4, status: str) -> None:
+    def set_status(self, request_id: UUID, status: str) -> None:
         request = self.get_pending_request_by_id(request_id)
         request.status = status
 
         request.save()
 
-    def set_error(self, request_id: uuid4, error_description: str) -> None:
+    def set_error(self, request_id: UUID, error_description: str) -> None:
         request = self.get_pending_request_by_id(request_id)
         request.error_description = error_description
         request.status = TransactionStatusEnum.ERROR

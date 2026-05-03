@@ -1,7 +1,7 @@
-from typing import Any, Dict, Optional, Sequence
-from uuid import uuid4
+from typing import Any, Dict, Optional, Sequence, Union
+from uuid import UUID
 
-from core.models import BaseModel, CarModel
+from core.models import BaseModel
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.exceptions import NotFound
 
@@ -12,7 +12,7 @@ class BaseService:
     def get_all(self) -> Sequence:
         return self.model.objects.all()
 
-    def get_by_id(self, id: uuid4):
+    def get_by_id(self, id: UUID):
         try:
             request = self.model.objects.get(pk=id)
         except ObjectDoesNotExist:
@@ -21,21 +21,22 @@ class BaseService:
             )
         return request
 
-    def update(
-        self, id: uuid4, data: Dict[str, Any], instance: BaseModel = None
-    ) -> BaseModel:
-        if not instance or not isinstance(instance, self.model):
-            instance = self.get_by_id(id)
+    def update(self, obj: Union[UUID, BaseModel], data: Dict[str, Any]) -> BaseModel:
+        if isinstance(obj, UUID):
+            instance = self.get_by_id(obj)
+        elif isinstance(obj, self.model):
+            instance = obj
+        else:
+            raise ValueError(
+                f"obj must be {self.model.__name__} instance or UUID, got {type(obj)}"
+            )
+
         for field, value in data.items():
             if hasattr(instance, field):
                 setattr(instance, field, value)
-        instance.save()
+        instance.save(update_fields=data.keys())
         return instance
 
-    def delete(self, id: uuid4) -> None:
+    def delete(self, id: UUID) -> None:
         instance = self.get_by_id(id)
         instance.delete()
-
-
-class CarService(BaseService):
-    model = CarModel

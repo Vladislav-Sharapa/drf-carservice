@@ -12,3 +12,9 @@ class OrderService(BaseService):
         return Order.objects.create(
             car=car_id, customer_id=customer_id, status=TransactionStatusEnum.PENDING
         )
+
+    def get_by_status(self, status: str):
+        orders = Order.objects.filter(status=status).all()
+        if not orders.exists():
+            return []
+        return orders

@@ -79,6 +79,10 @@ class OrderProcessingFlow:
                 status=TransactionStatusEnum.ERROR,
                 message="Error during server processing",
             )
+        finally:
+            order.refresh_from_db()
+
+        return order
 
     def _complete_order(self, order: Order, inventory: DealerShipInventory) -> None:
         """Complete order and save changes in DB"""

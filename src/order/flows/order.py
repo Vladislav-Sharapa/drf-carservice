@@ -36,6 +36,11 @@ class OrderProcessingFlow:
             )
         )
         if not inventory:
+            self._set_order_status(
+                order=order,
+                status=TransactionStatusEnum.FAILED,
+                message="here is no dealership with desired car",
+            )
             raise NotFound(detail="There is no dealership with desired car")
 
         new_customer_balance = self._calculate_customer_balance(

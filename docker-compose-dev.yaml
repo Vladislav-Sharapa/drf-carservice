@@ -1,7 +1,6 @@
 services:
     redis:
         image: redis:latest
-        container_name: redis
         hostname: ${RABBITTMQ_HOST}
         environment:
             - REDIS_PASSWORD=${REDIS_USER_PASSWORD}
@@ -36,7 +35,6 @@ services:
         tty: true
         stdin_open: true
     db_dev:
-        container_name: postgres_dev
         hostname: ${POSTGRES_HOST}
         image: postgres:latest
         environment:
@@ -73,20 +71,6 @@ services:
             timeout: 5s
             retries: 5
             start_period: 30s
-
-    # maildev:
-    #   image: maildev/maildev
-    #   environment:
-    #     - TZ=Europe/Moscow
-    #     - MAILDEV_WEB_PORT=${MAILDEV_WEB_CONTAINER_PORT}
-    #     - MAILDEV_SMTP_PORT=${MAILDEV_SMTP_CONTAINER_PORT}
-    #   ports:
-    #     - "${MAILDEV_WEB_PORT}:${MAILDEV_WEB_CONTAINER_PORT}"
-    #     - "${MAILDEV_SMTP_PORT}:${MAILDEV_SMTP_CONTAINER_PORT}"
-    #   logging:
-    #     driver: "json-file"
-    #     options:
-    #       max-size: "1m"
 
 volumes:
     postgres_drf:

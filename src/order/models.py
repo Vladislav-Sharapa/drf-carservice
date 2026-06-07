@@ -21,7 +21,9 @@ class CustomerProfile(BaseModel):
 
 
 class Order(BaseModel):
-    dealership = ForeignKey(DealerShip, on_delete=PROTECT, null=True, blank=True)
+    dealership = ForeignKey(
+        DealerShip, on_delete=PROTECT, null=True, blank=True, related_name="orders"
+    )
     car = ForeignKey(CarModel, on_delete=PROTECT)
     customer = ForeignKey(CustomerProfile, on_delete=PROTECT)
     quantity = PositiveSmallIntegerField(default=1)

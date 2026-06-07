@@ -24,10 +24,15 @@ class DealerShipService(BaseService):
     def get_loyalty_discount(self, dealership_id: UUID) -> QuerySet:
         return self._get_dealer_related_queryset(dealership_id, "loyalty_discount")
 
+    def get_orders(self, dealership_id: UUID) -> QuerySet:
+        return self._get_dealer_related_queryset(dealership_id, "orders")
+
     def _get_dealer_related_queryset(
         self,
         dealership_id: UUID,
-        attr_name: Literal["requests", "inventory", "promotions", "loyalty_discount"],
+        attr_name: Literal[
+            "requests", "inventory", "promotions", "loyalty_discount", "orders"
+        ],
         select_related_field: str = None,
         filters: dict[str, Any] = None,
     ) -> QuerySet:
@@ -56,7 +61,6 @@ class DealerShipService(BaseService):
         return queryset
 
     def _apply_filters(self, queryset: QuerySet, filters: dict):
-        print(filters)
         if filters:
             for field, value in filters.items():
                 queryset = queryset.filter(**{field: value})

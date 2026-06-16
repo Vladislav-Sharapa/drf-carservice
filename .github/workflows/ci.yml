@@ -32,5 +32,6 @@ jobs:
         run: poetry install --no-interaction --no-root
 
       - name: Run tests
+        working-directory: ./src
         run: python manage.py test --verbosity=2
 

@@ -1,0 +1,32 @@
+version: '3'
+
+
+tasks:
+
+  docker:up:
+    desc: Run dev docker containers
+    cmds:
+      - cmd: "docker compose -f docker-compose-dev.yaml --env-file dev.env build"
+      - cmd: "docker compose -f docker-compose-dev.yaml --env-file dev.env up"
+        silent: true
+
+  docker:down:
+    desc: Stop dev docker containers
+    cmds:
+      - cmd: "docker compose -f docker-compose-dev.yaml --env-file dev.env down"
+        silent: true
+
+  worker:start:
+    desc: Start celery worker
+    cmds: 
+      - "cd src && celery -A config worker -l INFO"
+    
+  beat:start:
+    desc: Start celery beat
+    cmds:
+      - "cd src && celery -A config beat -l INFO"
+
+  app:start:
+    desc: Start fastapi application
+    cmds:
+      - "cd src && python manage.py runserver_plus --print-sql"

@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "drf-carservice"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django-rest-framework = "^0.1.0"
+redis = "^7.4.0"
+pytest = "^9.0.3"
+pyjwt = "^2.12.1"
+drf-spectacular = "^0.29.0"
+ruff = "^0.15.9"
+rabbitmq = "^0.2.0"
+pytest-mock = "^3.15.1"
+black = "^26.3.1"
+celery = "^5.6.3"
+djangorestframework-simplejwt = "^5.5.1"
+pre-commit = "^4.5.1"
+django-extensions = "^4.1"
+werkzeug = "^3.1.8"
+django-filter = "^25.2"
+django-celery-beat = "^2.9.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
